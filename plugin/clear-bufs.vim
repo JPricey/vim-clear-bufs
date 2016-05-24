@@ -64,6 +64,7 @@ function! <SID>ClearCurrentInner(bang)
   let fallbackBuf = <SID>GetFallbackBuffer(targetBuf)
 
   let startWindow = winnr()
+  let calledNew = 0
 
   if !&modified || a:bang == '!'
     for winIndex in bufWindows
@@ -72,6 +73,7 @@ function! <SID>ClearCurrentInner(bang)
         if fallbackBuf <= 0
           exe 'enew' . a:bang
           let fallbackBuf = bufnr('%')
+          let calledNew = 1
         else
           exe 'buffer' . a:bang . ' ' . fallbackBuf
         endif
@@ -81,14 +83,19 @@ function! <SID>ClearCurrentInner(bang)
     exe startWindow . 'wincmd w'
   endif
 
-  silent execute 'bdelete' . a:bang . ' ' . targetBuf
+  " Don't delete the buffer if we called enew and didn't move anywhere
+  " This can happend when we call this function on an empty, unnamed buffer
+  " with no alternative
+  if !(calledNew && fallbackBuf == targetBuf)
+    silent execute 'bdelete' . a:bang . ' ' . targetBuf
+  endif
 endfunction
 
 function! <SID>GetFallbackBuffer(exceptBuf)
   let fallbackBuf = bufnr('$')
 
   while fallbackBuf > 0
-    if fallbackBuf != a:exceptBuf && buflisted(fallbackBuf)
+    if fallbackBuf != a:exceptBuf && bufloaded(fallbackBuf)
       break
     endif
     let fallbackBuf = fallbackBuf - 1
@@ -103,7 +110,7 @@ function! <SID>ClearTrySwap(bang)
     return 0
   endif
 
-  if buflisted(swapBuf)
+  if bufloaded(swapBuf)
     exe 'buffer' . a:bang . ' ' . swapBuf
     return 1
   else
