@@ -91,17 +91,22 @@ function! <SID>ClearCurrentInner(bang)
   endif
 endfunction
 
-function! <SID>GetFallbackBuffer(exceptBuf)
-  let fallbackBuf = bufnr('$')
+function! <SID>GetFallbackBuffer(targetBuf)
+  let maxBuf = bufnr('$')
+  let curBuf = a:targetBuf + 1
 
-  while fallbackBuf > 0
-    if fallbackBuf != a:exceptBuf && buflisted(fallbackBuf)
-      break
+  while curBuf != a:targetBuf
+    if curBuf > maxBuf
+      let curBuf = 1
+    else
+      if buflisted(curBuf)
+        return curBuf
+      endif
+      let curBuf = curBuf + 1
     endif
-    let fallbackBuf = fallbackBuf - 1
   endwhile
 
-  return fallbackBuf
+  return -1
 endfunction
 
 function! <SID>ClearTrySwap(bang)
