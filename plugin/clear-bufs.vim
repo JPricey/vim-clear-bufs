@@ -95,7 +95,7 @@ function! <SID>GetFallbackBuffer(exceptBuf)
   let fallbackBuf = bufnr('$')
 
   while fallbackBuf > 0
-    if fallbackBuf != a:exceptBuf && bufloaded(fallbackBuf)
+    if fallbackBuf != a:exceptBuf && buflisted(fallbackBuf)
       break
     endif
     let fallbackBuf = fallbackBuf - 1
